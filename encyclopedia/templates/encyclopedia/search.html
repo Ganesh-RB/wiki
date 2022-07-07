@@ -1,0 +1,25 @@
+{% extends 'encyclopedia/layout.html' %}
+
+{% block title %}
+Search result
+{% endblock %}
+
+{% block body %}
+<h1>Similar Pages</h1>
+
+<ul>
+  {% for entry in entries %}
+  <li>
+    <a href="/wiki/{{ entry }}">
+      {{ entry }}
+    </a>
+  </li>
+  {% empty %}
+  <li>
+    No Entry is matching, go to <a href="{% url 'wiki:index' %}">Home</a> 
+  </li>
+
+  {% endfor %}
+</ul>
+
+{% endblock %}

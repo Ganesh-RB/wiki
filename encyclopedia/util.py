@@ -1,7 +1,48 @@
+from logging import PlaceHolder
 import re
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django import forms
+from django.http import Http404, HttpResponseRedirect
+from httplib2 import Http
+from matplotlib.pyplot import title
+
+
+class NewSearchForm(forms.Form):
+    q = forms.CharField(
+        label='',
+        widget=forms.TextInput(
+            attrs={'class': 'search', 'placeholder': 'Search Encyclopedia'}))
+
+
+def get_entry(title):
+    """
+    Retrieves an encyclopedia entry by its title. If no such
+    entry exists, the function returns None.
+    """
+    try:
+        f = default_storage.open(f"entries/{title}.md")
+        return f.read().decode("utf-8")
+    except FileNotFoundError:
+        return None
+
+
+class CreateNewPageForm(forms.Form):
+    title = forms.CharField(
+        label='Title',
+        widget=forms.TextInput(
+            attrs={'class': 'form-control', 'placeholder': 'Enter page title here'}))
+
+    content = forms.CharField(min_length=10,
+                              label="Content",
+                              widget=forms.Textarea(
+                                  attrs={"placeholder": "nothing", 'class': 'form-control'}))
+
+    def clean_title(self):
+        title = self.cleaned_data['title']
+        if get_entry(title) != None:
+            raise forms.ValidationError("title already exists")
 
 
 def list_entries():
@@ -25,13 +66,20 @@ def save_entry(title, content):
     default_storage.save(filename, ContentFile(content))
 
 
-def get_entry(title):
+def search_bar(request):
     """
-    Retrieves an encyclopedia entry by its title. If no such
-    entry exists, the function returns None.
+    Check for the submission of form through POST method and retrun response
     """
-    try:
-        f = default_storage.open(f"entries/{title}.md")
-        return f.read().decode("utf-8")
-    except FileNotFoundError:
-        return None
+    if request.method == "POST":
+        form = NewSearchForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data["q"]
+            if get_entry(title) != None:
+                return HttpResponseRedirect(f"/wiki/{title}")
+            else:
+                return HttpResponseRedirect(f"/search/{title}")
+
+        else:
+            return Http404(request)
+    else:
+        return Http404(request)
