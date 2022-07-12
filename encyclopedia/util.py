@@ -1,5 +1,7 @@
 from logging import PlaceHolder
+from random import randint
 import re
+from typing import Optional
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -16,33 +18,30 @@ class NewSearchForm(forms.Form):
             attrs={'class': 'search', 'placeholder': 'Search Encyclopedia'}))
 
 
-def get_entry(title):
-    """
-    Retrieves an encyclopedia entry by its title. If no such
-    entry exists, the function returns None.
-    """
-    try:
-        f = default_storage.open(f"entries/{title}.md")
-        return f.read().decode("utf-8")
-    except FileNotFoundError:
-        return None
-
-
-class CreateNewPageForm(forms.Form):
+class EditorForm(forms.Form):
     title = forms.CharField(
         label='Title',
         widget=forms.TextInput(
             attrs={'class': 'form-control', 'placeholder': 'Enter page title here'}))
 
-    content = forms.CharField(min_length=10,
-                              label="Content",
-                              widget=forms.Textarea(
-                                  attrs={"placeholder": "nothing", 'class': 'form-control'}))
+    content = forms.CharField(
+        label="Content",
+        widget=forms.Textarea(
+            attrs={"placeholder": "Enter Markdown content here", 'class': 'form-control'}))
 
     def clean_title(self):
         title = self.cleaned_data['title']
         if get_entry(title) != None:
             raise forms.ValidationError("title already exists")
+
+        return title
+
+
+class EditEntryForm(forms.Form):
+    content = forms.CharField(
+        label="Content",
+        widget=forms.Textarea(attrs={'class': 'form-control'})
+    )
 
 
 def list_entries():
@@ -66,6 +65,18 @@ def save_entry(title, content):
     default_storage.save(filename, ContentFile(content))
 
 
+def get_entry(title):
+    """
+    Retrieves an encyclopedia entry by its title. If no such
+    entry exists, the function returns None.
+    """
+    try:
+        f = default_storage.open(f"entries/{title}.md")
+        return f.read().decode("utf-8")
+    except FileNotFoundError:
+        return None
+
+
 def search_bar(request):
     """
     Check for the submission of form through POST method and retrun response
@@ -83,3 +94,11 @@ def search_bar(request):
             return Http404(request)
     else:
         return Http404(request)
+
+
+def random_entry():
+    entries = list_entries()
+    if entries:
+        return entries[randint(0,len(entries)-1)]
+    else:
+        return None

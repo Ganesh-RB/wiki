@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link href="{% static 'encyclopedia/styles.css' %}" rel="stylesheet">
+    <link rel="icon" href="{% static 'encyclopedia/wiki.svg' %}" type="image/x-icon">
 </head>
 
 <body>
@@ -26,7 +27,9 @@
                 <a href="{% url 'wiki:new' %}"> Create New Page </a>
             </div>
             <div>
-                Random Page
+                <a href="{% url 'wiki:entry' random_page %}">
+                    Random Page
+                </a>
             </div>
             {% block nav %}
             {% endblock %}
@@ -38,5 +41,7 @@
     </div>
 
 </body>
+
+{% block script%}{% endblock%}
 
 </html>

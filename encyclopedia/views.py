@@ -12,7 +12,8 @@ def index(request):
     else:
         return render(request, "encyclopedia/index.html", {
             "entries": util.list_entries(),
-            "form": util.NewSearchForm()
+            "form": util.NewSearchForm(),
+            "random_page": util.random_entry()
         })
 
 
@@ -29,7 +30,8 @@ def entry(request, title):
     return render(request, "encyclopedia/entry.html", {
         "title": title,
         "content": html,
-        "form": util.NewSearchForm()
+        "form": util.NewSearchForm(),
+        "random_page": util.random_entry()
     })
 
 
@@ -44,27 +46,56 @@ def search_similar(request, title):
 
     return render(request, "encyclopedia/search.html", {
         "entries": search_entries,
-        "form": util.NewSearchForm()
+        "form": util.NewSearchForm(),
+        "random_page": util.random_entry()
     })
 
 
 def new(request):
     if request.method == "POST":
-        data = util.CreateNewPageForm(request.POST)
-        if data.is_valid():
-            title = data.cleaned_data["title"]
-            content = data.cleaned_data["content"]
-
-            util.save_entry(title, content)
-
-            return HttpResponseRedirect(f"/wiki/{title}")
+        if "Save" not in request.POST:
+            return util.search_bar(request)
         else:
-            return render(request, "encyclopedia/new.html", {
-                "form": util.NewSearchForm(),
-                "newPageForm": data
-            })
+            data = util.EditorForm(request.POST)
+            if data.is_valid():
+                title = data.cleaned_data["title"]
+                content = data.cleaned_data["content"]
+                util.save_entry(title, content)
+                return HttpResponseRedirect(f"/wiki/{title}")
+            else:
+                return render(request, "encyclopedia/editor.html", {
+                    "form": util.NewSearchForm(),
+                    "newPageForm": data,
+                    "random_page": util.random_entry()
+                })
 
-    return render(request, "encyclopedia/new.html", {
+    return render(request, "encyclopedia/editor.html", {
         "form": util.NewSearchForm(),
-        "newPageForm": util.CreateNewPageForm()
+        "newPageForm": util.EditorForm(),
+        "random_page": util.random_entry()
+    })
+
+
+def edit(request, title):
+    if request.method == "POST":
+        if "Save" not in request.POST:
+            return util.search_bar(request)
+        else:
+            data = util.EditEntryForm(request.POST)
+            if data.is_valid():
+                content = data.cleaned_data["content"]
+                util.save_entry(title, content)
+                return HttpResponseRedirect(f"/wiki/{title}")
+            else:
+                return render(request, "encyclopedia/editEntry.html", {
+                    "form": util.NewSearchForm(),
+                    "newPageForm": data,
+                    "random_page": util.random_entry()
+                })
+
+    return render(request, "encyclopedia/editEntry.html", {
+        "title": title,
+        "form": util.NewSearchForm(),
+        "newPageForm": util.EditEntryForm(initial={"title": title, "content": util.get_entry(title)}),
+        "random_page": util.random_entry()
     })
