@@ -1,14 +1,10 @@
-from logging import PlaceHolder
 from random import randint
 import re
-from typing import Optional
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django import forms
 from django.http import Http404, HttpResponseRedirect
-from httplib2 import Http
-from matplotlib.pyplot import title
 
 
 class NewSearchForm(forms.Form):

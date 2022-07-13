@@ -1,5 +1,4 @@
-from django import forms
-from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponseNotFound
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render
 import markdown
 
